@@ -32,7 +32,7 @@ This project is a key part of my journey toward becoming a systems and low-level
 
 - A C compiler (GCC or Clang)
 - CMake (version 3.10 or higher)
-- `xstdlib`: This project depends on a custom utility library. Ensure it is available in your include/library paths.
+- `xstdlib`: This project depends on a custom utility library that you can find on my github repo [here](https://github.com/juliotleonce/xstdlibc).
 
 ### Building
 
