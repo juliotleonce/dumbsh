@@ -23,6 +23,7 @@ This project is a key part of my journey toward becoming a systems and low-level
   - `main.c`: Entry point and demonstration of the lexer/parser.
   - `tokenizer.c`: Lexical analyzer.
   - `parser.c`: Recursive descent parser and AST builder.
+  - `sys_proc.c`: System calls wrapper for process management.
 - `headers/`: Header files defining the core data structures (Tokens, AST Nodes).
 - `CMakeLists.txt`: Build configuration.
 
