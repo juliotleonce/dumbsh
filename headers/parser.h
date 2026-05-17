@@ -1,5 +1,5 @@
-#ifndef DUMPSH_PARSER_H
-#define DUMPSH_PARSER_H
+#ifndef DUMBSH_PARSER_H
+#define DUMBSH_PARSER_H
 
 #include "tokenizer.h"
 

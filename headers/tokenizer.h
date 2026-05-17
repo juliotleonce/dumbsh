@@ -1,5 +1,5 @@
-#ifndef DUMPSH_TOKENIZER_H
-#define DUMPSH_TOKENIZER_H
+#ifndef DUMBSH_TOKENIZER_H
+#define DUMBSH_TOKENIZER_H
 #include <xstdlib/xstdlib.h>
 
 typedef enum TokenType {
