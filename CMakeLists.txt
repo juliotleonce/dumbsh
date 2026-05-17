@@ -15,7 +15,9 @@ add_executable(dumbsh src/main.c
         headers/tokenizer.h
         src/tokenizer.c
         headers/parser.h
-        src/parser.c)
+        src/parser.c
+        headers/sys_proc.h
+        src/sys_proc.c)
 
 target_link_libraries(dumbsh PRIVATE xstdlib::xstdlib)
 
