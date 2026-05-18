@@ -1,6 +1,7 @@
 #include "../headers/sys_proc.h"
 
 #include <errno.h>
+#include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -24,6 +25,26 @@ void sys_pipe_stdout(PipeChannel channel) {
     close(channel.fd_in);
     dup2(channel.fd_out, STDOUT_FILENO);
     close(channel.fd_out);
+}
+
+int sys_open_file(const XString *path, int flags) {
+    return open(path->c_str, flags, 0644);
+}
+
+void sys_redirect_stdout(int fd) {
+    dup2(fd, STDOUT_FILENO);
+    close(fd);
+}
+
+void sys_redirect_stdin(int fd) {
+    dup2(fd, STDIN_FILENO);
+    close(fd);
+}
+
+void sys_redirect_append(int fd) {
+    dup2(fd, STDOUT_FILENO);
+    fcntl(STDOUT_FILENO, F_SETFL, O_APPEND);
+    close(fd);
 }
 
 void sys_make_foreground() {
