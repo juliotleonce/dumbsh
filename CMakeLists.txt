@@ -17,7 +17,9 @@ add_executable(dumbsh src/main.c
         headers/parser.h
         src/parser.c
         headers/sys_proc.h
-        src/sys_proc.c)
+        src/sys_proc.c
+        headers/executor.h
+        src/executor.c)
 
 target_link_libraries(dumbsh PRIVATE xstdlib::xstdlib)
 

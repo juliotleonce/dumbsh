@@ -1,0 +1,101 @@
+#include "../headers/executor.h"
+
+#include <unistd.h>
+#include <asm-generic/errno-base.h>
+
+XResult(int) exec_cmd_node(const ASTNode *node);
+XResult(int) exec_sequence_node(const ASTNode *node);
+XResult(int) exec_pipe_node(const ASTNode *node);
+
+XResult(int) exec_node(const ASTNode *node) {
+    ASTNodeType type = node->type;
+
+    switch (type) {
+        case AST_NODE_CMD:
+            return exec_cmd_node(node);
+        case AST_NODE_PIPELINE:
+            return exec_pipe_node(node);
+        case AST_NODE_AND:
+        case AST_NODE_OR:
+            return exec_sequence_node(node);
+    }
+
+    return OK(int, 0);
+}
+
+XResult(int) exec_cmd_node(const ASTNode *node) {
+    Proc proc = UNWRAP(sys_fork());
+
+    if (sys_on_child_proc(proc)) {
+        sys_make_foreground();
+
+        XString *cmd = node->leaf.cmd;
+        XArray_(XString) args = node->leaf.argv;
+        XResult(int) exec_ret = sys_exec(cmd, args);
+        if (IS_ERR(exec_ret)) {
+            switch (ERR_CODE(exec_ret)) {
+                case EACCES:
+                    fprintf(stderr,"Acces root necessaire.\n");
+                    _exit(126);
+                case ENOENT:
+                    fprintf(stderr,"Commande \"%s\" inconnue.\n", cmd->c_str);
+                    _exit(127);
+                default:
+                    PRINT_ERROR(exec_ret);
+                    _exit(ERR_CODE(exec_ret));
+            }
+        }
+
+        _exit(UNWRAP(exec_ret));
+    }
+
+    int exit_status = UNWRAP(sys_wait(proc));
+    printf("exit code: %d", exit_status);
+    return OK(int, exit_status);
+}
+
+XResult(int) exec_sequence_node(const ASTNode *node) {
+    Proc proc1 = UNWRAP(sys_fork());
+    if (sys_on_child_proc(proc1)) {
+        int exit_code = UNWRAP(exec_node(node->branch.left));
+        _exit(exit_code);
+    }
+
+    int exit_status = UNWRAP(sys_wait(proc1));
+    if (node->type == AST_NODE_AND && exit_status != 0) {
+        return OK(int, exit_status);
+    }
+
+    Proc proc2 = UNWRAP(sys_fork());
+    if (sys_on_child_proc(proc2)) {
+        int exit_code = UNWRAP(exec_node(node->branch.right));
+        _exit(exit_code);
+    }
+
+    int proc2_exit_status = UNWRAP(sys_wait(proc2));
+    return OK(int, proc2_exit_status);
+}
+
+XResult(int) exec_pipe_node(const ASTNode *node) {
+    PipeChannel pipe = UNWRAP(sys_new_pipe_channel());
+    Proc proc1 = UNWRAP(sys_fork());
+
+    if (sys_on_child_proc(proc1)) {
+        sys_pipe_stdout(pipe);
+        int exit_code = UNWRAP(exec_node(node->branch.left));
+        _exit(exit_code);
+    }
+
+    Proc proc2 = UNWRAP(sys_fork());
+    if (sys_on_child_proc(proc2)) {
+        sys_pipe_stdin(pipe);
+        int exit_code = UNWRAP(exec_node(node->branch.right));
+        _exit(exit_code);
+    }
+
+    sys_close_pipe_channel(pipe);
+    int proc1_exit_status = UNWRAP(sys_wait(proc1));
+    int proc2_exit_status = UNWRAP(sys_wait(proc2));
+    int exit_code = proc1_exit_status | proc2_exit_status;
+    return OK(int, exit_code);
+}
