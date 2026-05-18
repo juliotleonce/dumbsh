@@ -1,11 +1,13 @@
 #include "../headers/executor.h"
 
 #include <unistd.h>
+#include <fcntl.h>
 #include <asm-generic/errno-base.h>
 
 XResult(int) exec_cmd_node(const ASTNode *node);
 XResult(int) exec_sequence_node(const ASTNode *node);
 XResult(int) exec_pipe_node(const ASTNode *node);
+void apply_redirection(const Redirection *redir);
 
 XResult(int) exec_node(const ASTNode *node) {
     ASTNodeType type = node->type;
@@ -31,6 +33,11 @@ XResult(int) exec_cmd_node(const ASTNode *node) {
 
         XString *cmd = node->leaf.cmd;
         XArray_(XString) args = node->leaf.argv;
+        XArray_(Redirection) redirs = node->leaf.redirs;
+
+        for (int i = 0; i < redirs->length; i++)
+            apply_redirection(xarray_at(redirs, i));
+
         XResult(int) exec_ret = sys_exec(cmd, args);
         if (IS_ERR(exec_ret)) {
             switch (ERR_CODE(exec_ret)) {
@@ -104,4 +111,22 @@ XResult(int) exec_pipe_node(const ASTNode *node) {
     int proc2_exit_status = UNWRAP(sys_wait(proc2));
     int exit_code = proc1_exit_status | proc2_exit_status;
     return OK(int, exit_code);
+}
+
+void apply_redirection(const Redirection *redir) {
+    int fd;
+    switch (redir->type) {
+        case REDIR_OUT:
+            fd = sys_open_file(redir->path, O_WRONLY | O_CREAT | O_TRUNC);
+            sys_redirect_stdout(fd);
+            break;
+        case REDIR_IN:
+            fd = sys_open_file(redir->path, O_RDONLY | O_CREAT);
+            sys_redirect_stdin(fd);
+            break;
+        case REDIR_APPEND:
+            fd = sys_open_file(redir->path, O_WRONLY | O_CREAT | O_APPEND);
+            sys_redirect_append(fd);
+            break;
+    }
 }
