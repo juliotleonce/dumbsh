@@ -91,6 +91,19 @@ Token *read_operator(Tokenizer *tokenizer) {
         return token_new(TOKEN_OR, NULL);
     }
 
+    if (peek(tokenizer) == '>') {
+        advance(tokenizer);
+        if (peek(tokenizer) != '>') return token_new(TOKEN_REDIR_OUT, NULL);
+        advance(tokenizer);
+        return token_new(TOKEN_REDIR_APPEND, NULL);
+    }
+
+    if (peek(tokenizer) == '<') {
+        advance(tokenizer);
+        if (peek(tokenizer) != '<') return token_new(TOKEN_REDIR_IN, NULL);
+    }
+
+    advance(tokenizer);
     return token_new(TOKEN_UNKNOWN, NULL);
 }
 

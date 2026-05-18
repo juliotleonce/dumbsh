@@ -11,6 +11,9 @@ typedef enum TokenType {
     TOKEN_WORD,
     TOKEN_DQUOTED,
     TOKEN_SQUOTED,
+    TOKEN_REDIR_OUT,
+    TOKEN_REDIR_APPEND,
+    TOKEN_REDIR_IN,
     TOKEN_UNKNOWN,
     TOKEN_EOF,
 } TokenType;
