@@ -45,7 +45,7 @@ XResult(Proc) sys_fork() {
     if (pid == -1)
         return ERR(Proc, errno, strerror(errno));
 
-    Proc proc = { .pid = pid, .status = 0 };
+    Proc proc = { .pid = pid };
     return OK(Proc, proc);
 }
 
