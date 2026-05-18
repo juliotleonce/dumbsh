@@ -8,6 +8,7 @@ typedef struct TokenIterator {
 static ASTNode *parse_sequence(TokenIterator *iterator);
 static ASTNode *parse_pipeline(TokenIterator *iterator);
 static ASTNode *parse_cmd(TokenIterator *iterator);
+static XArray_(Redirection) parse_redirection(TokenIterator *iterator);
 static ASTNode *node_new(ASTNodeType type);
 static Token *peek(const TokenIterator *iterator);
 static Token *advance(TokenIterator *iterator);
@@ -68,7 +69,37 @@ ASTNode *parse_cmd(TokenIterator *iterator) {
 
     cmd_node->leaf.argv = argv;
     cmd_node->leaf.cmd = cmd;
+    cmd_node->leaf.redirs = parse_redirection(iterator);
+
     return cmd_node;
+}
+
+static XArray_(Redirection) parse_redirection(TokenIterator *iterator) {
+    XArray_(Redirection) redirs = xarray_new(sizeof(Redirection));
+
+    while (match(iterator, TOKEN_REDIR_OUT)
+        || match(iterator, TOKEN_REDIR_IN)
+        || match(iterator, TOKEN_REDIR_APPEND)
+    ) {
+        TokenType type = peek(iterator)->type;
+        advance(iterator);
+        Token *word = peek(iterator);
+        advance(iterator);
+
+        if (word->type == TOKEN_WORD
+            || word->type == TOKEN_SQUOTED
+            || word->type == TOKEN_DQUOTED
+        ) {
+            Redirection redir;
+            redir.path = word->value;
+            if (type == TOKEN_REDIR_OUT) redir.type = REDIR_OUT;
+            if (type == TOKEN_REDIR_IN) redir.type = REDIR_IN;
+            if (type == TOKEN_REDIR_APPEND) redir.type = REDIR_APPEND;
+            xarray_push(redirs, &redir);
+        }
+    }
+
+    return redirs;
 }
 
 ASTNode *node_new(ASTNodeType type) {

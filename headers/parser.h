@@ -4,9 +4,21 @@
 #include "tokenizer.h"
 
 DEFINE_XARRAY_OF(XString)
+DEFINE_XARRAY_OF(Redirection)
 
 typedef struct TokenIterator TokenIterator;
 typedef struct ASTNode ASTNode;
+
+typedef enum RedirectionType {
+    REDIR_IN,
+    REDIR_OUT,
+    REDIR_APPEND,
+} RedirectionType;
+
+typedef struct Redirection {
+    XString *path;
+    RedirectionType type;
+} Redirection;
 
 typedef enum ASTNodeType {
   AST_NODE_CMD,
@@ -19,6 +31,7 @@ typedef struct ASTNodeLeaf {
     ASTNodeType type;
     XString *cmd;
     XArray_(XString) argv;
+    XArray_(Redirection) redirs;
 } ASTNodeLeaf;
 
 typedef struct ASTNodeBranch {
