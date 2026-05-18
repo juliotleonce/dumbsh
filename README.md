@@ -70,7 +70,7 @@ To start the interactive shell, simply run the generated executable:
 You can then type commands just like in any other shell. For example:
 ```bash
 $dumbsh# ls -l | grep ".c"
-$dumbsh# echo "Hello, world!" && exit
+$dumbsh# echo "Hello" &&  echo " World!"
 ```
 
 ## Core Concepts
