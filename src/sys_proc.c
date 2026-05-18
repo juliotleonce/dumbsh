@@ -26,6 +26,10 @@ void sys_pipe_stdout(PipeChannel channel) {
     close(channel.fd_out);
 }
 
+void sys_make_foreground() {
+    setpgid(0, 0);
+}
+
 XResult(PipeChannel) sys_new_pipe_channel() {
     int pipe_fd[2];
     if (pipe(pipe_fd) == -1)
@@ -45,10 +49,13 @@ XResult(Proc) sys_fork() {
     return OK(Proc, proc);
 }
 
-XResult(Proc) sys_wait(Proc proc) {
-    if (waitpid(proc.pid , &proc.status, 0) == -1)
-        return ERR(Proc, errno, strerror(errno));
-    return OK(Proc, proc);
+XResult(int) sys_wait(Proc proc) {
+    int exit_status;
+    if (waitpid(proc.pid , &exit_status, 0) == -1)
+        return ERR(int, errno, strerror(errno));
+    if (WIFEXITED(exit_status))
+        return OK(int, WEXITSTATUS(exit_status));
+    return ERR(int, -1, "Process exited abnormally");
 }
 
 XResult(int) sys_exec(const XString *command, XArray_(XString) args) {
