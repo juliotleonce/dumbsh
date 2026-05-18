@@ -12,16 +12,16 @@ This project is a key part of my journey toward becoming a systems and low-level
 - **Interactive REPL:** A standard Read-Eval-Print Loop with a custom prompt (`$dumbsh# `).
 - **Command Execution:** Executes external programs found in the system's `PATH`.
 - **Pipelines:** Supports connecting commands via pipes (`cmd1 | cmd2`), allowing the output of one command to be the input of another.
+- **I/O Redirection:** Supporting `>`, `<`, and `>>` for redirecting standard input, output, and error.
 - **Logical Operators:** Supports conditional execution using `&&` (AND) and `||` (OR) operators.
 - **Quoting:** Handles single (`'`) and double (`"`) quotes for arguments containing spaces or special characters.
 - **Robust Tokenization & Parsing:** Uses a hand-written lexical analyzer and a recursive descent parser to build an Abstract Syntax Tree (AST) for reliable command execution.
 - **Built-in Commands:** Includes basic built-ins like `exit` to terminate the shell session.
 
-## Future Features
+## Next Features
 
-We are actively working on expanding `dumbsh`. Planned features for the near future include:
+I'm actively working on expanding `dumbsh`. Planned features for the near future include:
 
-- **I/O Redirection:** Supporting `>`, `<`, and `>>` for redirecting standard input, output, and error.
 - **Environment Variables:** Ability to expand and manage environment variables (e.g., `$HOME`, `$PATH`).
 - **More Built-in Commands:** Adding `cd`, `pwd`, `export`, and `unset`.
 - **Background Execution:** Full support for running commands in the background using the `&` operator.
