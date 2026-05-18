@@ -35,13 +35,10 @@ XResult(int) exec_cmd_node(const ASTNode *node) {
         if (IS_ERR(exec_ret)) {
             switch (ERR_CODE(exec_ret)) {
                 case EACCES:
-                    fprintf(stderr,"Acces root necessaire.\n");
                     _exit(126);
                 case ENOENT:
-                    fprintf(stderr,"Commande \"%s\" inconnue.\n", cmd->c_str);
                     _exit(127);
                 default:
-                    PRINT_ERROR(exec_ret);
                     _exit(ERR_CODE(exec_ret));
             }
         }
@@ -50,14 +47,23 @@ XResult(int) exec_cmd_node(const ASTNode *node) {
     }
 
     int exit_status = UNWRAP(sys_wait(proc));
-    printf("exit code: %d", exit_status);
-    return OK(int, exit_status);
+    switch (exit_status) {
+        case 0:
+            return OK(int, 0);
+        case 126:
+            return ERR(int, 126, "Permission refuse.");
+        case 127:
+            return ERR(int, 127, "Commande introuvable");
+        default:
+            return ERR(int, exit_status, "Command exited abnormally");
+    }
+
 }
 
 XResult(int) exec_sequence_node(const ASTNode *node) {
     Proc proc1 = UNWRAP(sys_fork());
     if (sys_on_child_proc(proc1)) {
-        int exit_code = UNWRAP(exec_node(node->branch.left));
+        int exit_code = TRY(exec_node(node->branch.left), int);
         _exit(exit_code);
     }
 
@@ -68,7 +74,7 @@ XResult(int) exec_sequence_node(const ASTNode *node) {
 
     Proc proc2 = UNWRAP(sys_fork());
     if (sys_on_child_proc(proc2)) {
-        int exit_code = UNWRAP(exec_node(node->branch.right));
+        int exit_code = TRY(exec_node(node->branch.right), int);
         _exit(exit_code);
     }
 
@@ -82,14 +88,14 @@ XResult(int) exec_pipe_node(const ASTNode *node) {
 
     if (sys_on_child_proc(proc1)) {
         sys_pipe_stdout(pipe);
-        int exit_code = UNWRAP(exec_node(node->branch.left));
+        int exit_code = TRY(exec_node(node->branch.left), int);
         _exit(exit_code);
     }
 
     Proc proc2 = UNWRAP(sys_fork());
     if (sys_on_child_proc(proc2)) {
         sys_pipe_stdin(pipe);
-        int exit_code = UNWRAP(exec_node(node->branch.right));
+        int exit_code = TRY(exec_node(node->branch.right), int);
         _exit(exit_code);
     }
 
