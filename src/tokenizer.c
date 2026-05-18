@@ -13,6 +13,7 @@ Token *read_quoted(Tokenizer *tokenizer, char quote);
 Token *read_operator(Tokenizer *tokenizer);
 Token *token_new(TokenType type, XString *value);
 void skip_whitespace(Tokenizer *tokenizer);
+bool is_word_char(char c);
 char peek(const Tokenizer *tokenizer);
 char advance(Tokenizer *tokenizer);
 
@@ -45,10 +46,7 @@ Token *get_next_token(Tokenizer *tokenizer) {
         return read_quoted(tokenizer, peek(tokenizer));
     }
 
-    if (isalpha(peek(tokenizer))
-        || peek(tokenizer) == '_'
-        || peek(tokenizer) == '-'
-        || peek(tokenizer) == '$') {
+    if (is_word_char(peek(tokenizer))) {
         return read_word(tokenizer);
     }
 
@@ -57,11 +55,7 @@ Token *get_next_token(Tokenizer *tokenizer) {
 
 Token *read_word(Tokenizer *tokenizer) {
     unsigned start = tokenizer->position;
-    while ((isalpha(peek(tokenizer))
-        || peek(tokenizer) == '_'
-        || peek(tokenizer) == '-'
-        || peek(tokenizer) == '$')
-        && peek(tokenizer) != '\0') {
+    while (is_word_char(peek(tokenizer)) && peek(tokenizer) != '\0') {
         advance(tokenizer);
     }
 
@@ -111,6 +105,16 @@ void skip_whitespace(Tokenizer *tokenizer) {
     while (isspace(peek(tokenizer)) && peek(tokenizer) != '\0') {
         tokenizer->position++;
     }
+}
+
+bool inline is_word_char(char c) {
+    return
+        isalnum(c) ||
+        c == '_' ||
+        c == '-' ||
+        c == '$' ||
+        c == '.' ||
+        c == '/';
 }
 
 char peek(const Tokenizer *tokenizer) {
