@@ -7,15 +7,26 @@ This project is a key part of my journey toward becoming a systems and low-level
 
 ## Features
 
-- **Lexical Analysis (Tokenizer):** Converts raw input strings into a stream of meaningful tokens.
-  - Supports words, single quotes (`'`), and double quotes (`"`).
-  - Recognizes special operators: `|` (pipe), `&&` (AND), `||` (OR), and `&` (background).
-- **Abstract Syntax Tree (AST):** Builds a structured representation of commands to handle complex execution logic.
-- **Recursive Descent Parser:** Implements a parser that understands:
-  - Simple commands and arguments.
-  - Pipelines (`cmd1 | cmd2`).
-  - Logical sequences (`cmd1 && cmd2` or `cmd1 || cmd2`).
-- **Educational Design:** Clean code structure aimed at students and developers curious about systems programming.
+`dumbsh` currently supports the following features:
+
+- **Interactive REPL:** A standard Read-Eval-Print Loop with a custom prompt (`$dumbsh# `).
+- **Command Execution:** Executes external programs found in the system's `PATH`.
+- **Pipelines:** Supports connecting commands via pipes (`cmd1 | cmd2`), allowing the output of one command to be the input of another.
+- **Logical Operators:** Supports conditional execution using `&&` (AND) and `||` (OR) operators.
+- **Quoting:** Handles single (`'`) and double (`"`) quotes for arguments containing spaces or special characters.
+- **Robust Tokenization & Parsing:** Uses a hand-written lexical analyzer and a recursive descent parser to build an Abstract Syntax Tree (AST) for reliable command execution.
+- **Built-in Commands:** Includes basic built-ins like `exit` to terminate the shell session.
+
+## Future Features
+
+We are actively working on expanding `dumbsh`. Planned features for the near future include:
+
+- **I/O Redirection:** Supporting `>`, `<`, and `>>` for redirecting standard input, output, and error.
+- **Environment Variables:** Ability to expand and manage environment variables (e.g., `$HOME`, `$PATH`).
+- **More Built-in Commands:** Adding `cd`, `pwd`, `export`, and `unset`.
+- **Background Execution:** Full support for running commands in the background using the `&` operator.
+- **Command History:** Navigating and re-executing previous commands using arrow keys.
+- **Tab Completion:** Auto-completing command names and file paths.
 
 ## Project Structure
 
@@ -46,14 +57,20 @@ cmake ..
 make
 ```
 
-This will generate the `dumpsh` executable.
+This will generate the `dumbsh` executable.
 
 ### Running
 
-Currently, `dumbsh` is in its early stages. You can run the executable to see the tokenization and parsing of a sample command:
+To start the interactive shell, simply run the generated executable:
 
 ```bash
-./dumpsh
+./dumbsh
+```
+
+You can then type commands just like in any other shell. For example:
+```bash
+$dumbsh# ls -l | grep ".c"
+$dumbsh# echo "Hello, world!" && exit
 ```
 
 ## Core Concepts
@@ -65,7 +82,11 @@ The development of `dumbsh` is guided by standard compiler construction principl
 3.  **Abstract Syntax Tree (AST):** The parser produces an AST, a hierarchical tree representation of the command.
     - **Leaf Nodes:** Represent simple commands with their arguments.
     - **Branch Nodes:** Represent operations that connect commands, such as Pipes (`|`), AND (`&&`), and OR (`||`) operators.
-4.  **Separation of Concerns:** The project is modularized into distinct components for tokenization and parsing, making the codebase easier to understand and extend for educational purposes.
+4.  **Execution Engine:** The shell traverses the AST and executes the commands.
+    - **Process Management:** Uses `fork()` and `execvp()` to run external programs.
+    - **Inter-Process Communication:** Implements pipelines using `pipe()` and `dup2()` to connect the standard output of one process to the standard input of another.
+    - **Logical Control Flow:** Evaluates the exit status of commands to decide whether to continue execution in `&&` and `||` sequences.
+5.  **Separation of Concerns:** The project is modularized into distinct components for tokenization, parsing, and execution, making the codebase easier to understand and extend for educational purposes.
 
 ## License
 
